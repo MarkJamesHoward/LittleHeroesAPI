@@ -66,13 +66,8 @@ resource "azurerm_linux_web_app" "main" {
   }
 
   app_settings = {
-    "ASPNETCORE_ENVIRONMENT" = "Production"
-  }
-
-  connection_string {
-    name  = "DefaultConnection"
-    type  = "MySql"
-    value = "Server=${azurerm_mysql_flexible_server.main.fqdn};Database=${var.mysql_database_name};User=${var.mysql_admin_username};Password=${var.mysql_admin_password};SslMode=Required;"
+    "ASPNETCORE_ENVIRONMENT"               = "Production"
+    "ConnectionStrings__DefaultConnection" = "Server=${azurerm_mysql_flexible_server.main.fqdn};Database=${var.mysql_database_name};User=${var.mysql_admin_username};Password=${var.mysql_admin_password};SslMode=Required;"
   }
 }
 
