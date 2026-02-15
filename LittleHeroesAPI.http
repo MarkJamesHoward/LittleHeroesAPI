@@ -1,0 +1,6 @@
+@LittleHeroesAPI_HostAddress = http://localhost:5216
+
+GET {{LittleHeroesAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

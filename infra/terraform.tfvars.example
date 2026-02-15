@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# NEVER commit terraform.tfvars to source control.
+
+resource_group_name  = "rg-littleheroes"
+location             = "newzealandnorth"
+app_name             = "littleheroesapi"
+mysql_server_name    = "littleheroes-mysql"
+mysql_database_name  = "littleheroes"
+mysql_admin_username = "mysqladmin"
+mysql_admin_password = "CHANGE_ME_StrongP@ssw0rd!"
+mysql_sku_name       = "B_Standard_B1ms"
