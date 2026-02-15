@@ -45,3 +45,9 @@ variable "mysql_sku_name" {
   type        = string
   default     = "B_Standard_B1ms"
 }
+
+variable "github_repo" {
+  description = "GitHub repository in 'owner/name' format for OIDC federation"
+  type        = string
+  default     = "MarkJamesHoward/LittleHeroesAPI"
+}

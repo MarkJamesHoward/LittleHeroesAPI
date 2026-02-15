@@ -6,12 +6,29 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
   }
 }
 
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
+
+provider "github" {
+  owner = split("/", var.github_repo)[0]
+}
+
+data "azurerm_subscription" "current" {}
+data "azuread_client_config" "current" {}
 
 # -------------------------------------------------------
 # Resource Group
@@ -98,4 +115,56 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "allow_azure" {
   resource_group_name = azurerm_resource_group.main.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
+}
+
+# -------------------------------------------------------
+# Azure AD App Registration & Service Principal (for GitHub Actions OIDC)
+# -------------------------------------------------------
+resource "azuread_application" "github_deploy" {
+  display_name = "${var.app_name}-github-deploy"
+  owners       = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_service_principal" "github_deploy" {
+  client_id = azuread_application.github_deploy.client_id
+  owners    = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_application_federated_identity_credential" "github_main" {
+  application_id = azuread_application.github_deploy.id
+  display_name   = "github-actions-main"
+  description    = "GitHub Actions deploying from main branch"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://token.actions.githubusercontent.com"
+  subject        = "repo:${var.github_repo}:ref:refs/heads/main"
+}
+
+# -------------------------------------------------------
+# Role Assignment - Contributor on Resource Group
+# -------------------------------------------------------
+resource "azurerm_role_assignment" "github_deploy_contributor" {
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.github_deploy.object_id
+}
+
+# -------------------------------------------------------
+# GitHub Actions Secrets (OIDC credentials)
+# -------------------------------------------------------
+resource "github_actions_secret" "azure_client_id" {
+  repository      = split("/", var.github_repo)[1]
+  secret_name     = "AZURE_CLIENT_ID"
+  plaintext_value = azuread_application.github_deploy.client_id
+}
+
+resource "github_actions_secret" "azure_tenant_id" {
+  repository      = split("/", var.github_repo)[1]
+  secret_name     = "AZURE_TENANT_ID"
+  plaintext_value = data.azuread_client_config.current.tenant_id
+}
+
+resource "github_actions_secret" "azure_subscription_id" {
+  repository      = split("/", var.github_repo)[1]
+  secret_name     = "AZURE_SUBSCRIPTION_ID"
+  plaintext_value = data.azurerm_subscription.current.subscription_id
 }

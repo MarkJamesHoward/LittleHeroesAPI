@@ -13,3 +13,18 @@ output "mysql_connection_string" {
   value       = "Server=${azurerm_mysql_flexible_server.main.fqdn};Database=${var.mysql_database_name};User=${var.mysql_admin_username};Password=${var.mysql_admin_password};SslMode=Required;"
   sensitive   = true
 }
+
+output "azure_client_id" {
+  description = "Service principal client ID — set as AZURE_CLIENT_ID GitHub secret"
+  value       = azuread_application.github_deploy.client_id
+}
+
+output "azure_tenant_id" {
+  description = "Azure AD tenant ID — set as AZURE_TENANT_ID GitHub secret"
+  value       = data.azuread_client_config.current.tenant_id
+}
+
+output "azure_subscription_id" {
+  description = "Azure subscription ID — set as AZURE_SUBSCRIPTION_ID GitHub secret"
+  value       = data.azurerm_subscription.current.subscription_id
+}
