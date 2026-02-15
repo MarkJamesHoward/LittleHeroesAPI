@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // EF Core + MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Server=localhost;Database=littleheroes;User=root;Password=;";
-var serverVersion = ServerVersion.AutoDetect(connectionString);
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, serverVersion));
 
