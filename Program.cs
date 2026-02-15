@@ -65,10 +65,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Auto-migrate in development
-if (app.Environment.IsDevelopment())
+// Ensure database schema exists
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 }
