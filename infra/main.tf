@@ -67,49 +67,43 @@ resource "azurerm_linux_web_app" "main" {
 
   app_settings = {
     "ASPNETCORE_ENVIRONMENT"               = "Production"
-    "ConnectionStrings__DefaultConnection" = "Server=${azurerm_mysql_flexible_server.main.fqdn};Database=${var.mysql_database_name};User=${var.mysql_admin_username};Password=${var.mysql_admin_password};SslMode=Required;"
+    "ConnectionStrings__DefaultConnection" = "Server=tcp:${azurerm_mssql_server.main.fully_qualified_domain_name},1433;Initial Catalog=${var.sql_database_name};User ID=${var.sql_admin_username};Password=${var.sql_admin_password};Encrypt=True;TrustServerCertificate=False;"
   }
 }
 
 # -------------------------------------------------------
-# MySQL Flexible Server
+# Azure SQL Server
 # -------------------------------------------------------
-resource "azurerm_mysql_flexible_server" "main" {
-  name                   = var.mysql_server_name
-  location               = azurerm_resource_group.main.location
-  resource_group_name    = azurerm_resource_group.main.name
-  administrator_login    = var.mysql_admin_username
-  administrator_password = var.mysql_admin_password
-  sku_name               = var.mysql_sku_name
-  version                = "8.0.21"
-
-  storage {
-    size_gb = 20
-  }
-
-  backup_retention_days = 7
+resource "azurerm_mssql_server" "main" {
+  name                         = var.sql_server_name
+  location                     = azurerm_resource_group.main.location
+  resource_group_name          = azurerm_resource_group.main.name
+  version                      = "12.0"
+  administrator_login          = var.sql_admin_username
+  administrator_login_password = var.sql_admin_password
 }
 
 # -------------------------------------------------------
-# MySQL Database
+# Azure SQL Database (Free serverless tier)
 # -------------------------------------------------------
-resource "azurerm_mysql_flexible_database" "main" {
-  name                = var.mysql_database_name
-  resource_group_name = azurerm_resource_group.main.name
-  server_name         = azurerm_mysql_flexible_server.main.name
-  charset             = "utf8mb4"
-  collation           = "utf8mb4_unicode_ci"
+resource "azurerm_mssql_database" "main" {
+  name      = var.sql_database_name
+  server_id = azurerm_mssql_server.main.id
+  sku_name  = "GP_S_Gen5_2"
+
+  auto_pause_delay_in_minutes = 60
+  min_capacity                = 0.5
+  max_size_gb                 = 32
 }
 
 # -------------------------------------------------------
 # Firewall Rule - Allow Azure Services
 # -------------------------------------------------------
-resource "azurerm_mysql_flexible_server_firewall_rule" "allow_azure" {
-  name                = "AllowAzureServices"
-  server_name         = azurerm_mysql_flexible_server.main.name
-  resource_group_name = azurerm_resource_group.main.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "allow_azure" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.main.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
 # -------------------------------------------------------

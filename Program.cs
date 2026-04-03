@@ -6,13 +6,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core + MySQL
+// EF Core + SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Database=littleheroes;User=root;Password=;";
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
+    ?? "Server=localhost;Database=littleheroes;Trusted_Connection=True;TrustServerCertificate=True;";
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, serverVersion, mysqlOptions =>
-        mysqlOptions.EnableRetryOnFailure()));
+    options.UseSqlServer(connectionString, sqlOptions =>
+        sqlOptions.EnableRetryOnFailure()));
 
 // Auth0 JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

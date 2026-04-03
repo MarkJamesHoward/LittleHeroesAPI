@@ -16,34 +16,28 @@ variable "app_name" {
   default     = "littleheroesapi"
 }
 
-variable "mysql_admin_username" {
-  description = "Administrator username for MySQL Flexible Server"
+variable "sql_server_name" {
+  description = "Name of the Azure SQL Server (must be globally unique)"
   type        = string
-  sensitive   = true
+  default     = "littleheroes-sql"
 }
 
-variable "mysql_admin_password" {
-  description = "Administrator password for MySQL Flexible Server"
-  type        = string
-  sensitive   = true
-}
-
-variable "mysql_server_name" {
-  description = "Name of the MySQL Flexible Server (must be globally unique)"
-  type        = string
-  default     = "littleheroes-mysql"
-}
-
-variable "mysql_database_name" {
-  description = "Name of the MySQL database"
+variable "sql_database_name" {
+  description = "Name of the SQL database"
   type        = string
   default     = "littleheroes"
 }
 
-variable "mysql_sku_name" {
-  description = "SKU for MySQL Flexible Server"
+variable "sql_admin_username" {
+  description = "Administrator username for Azure SQL Server"
   type        = string
-  default     = "B_Standard_B1ms"
+  sensitive   = true
+}
+
+variable "sql_admin_password" {
+  description = "Administrator password for Azure SQL Server"
+  type        = string
+  sensitive   = true
 }
 
 variable "github_repo" {
