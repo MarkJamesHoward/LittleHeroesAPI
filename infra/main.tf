@@ -65,9 +65,13 @@ resource "azurerm_linux_web_app" "main" {
     always_on = false # F1 tier does not support Always On
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   app_settings = {
     "ASPNETCORE_ENVIRONMENT"               = "Production"
-    "ConnectionStrings__DefaultConnection" = "Server=tcp:${azurerm_mssql_server.main.fully_qualified_domain_name},1433;Initial Catalog=${var.sql_database_name};User ID=${var.sql_admin_username};Password=${var.sql_admin_password};Encrypt=True;TrustServerCertificate=False;"
+    "ConnectionStrings__DefaultConnection" = "Server=tcp:${azurerm_mssql_server.main.fully_qualified_domain_name},1433;Initial Catalog=${var.sql_database_name};Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;"
   }
 }
 
@@ -81,6 +85,11 @@ resource "azurerm_mssql_server" "main" {
   version                      = "12.0"
   administrator_login          = var.sql_admin_username
   administrator_login_password = var.sql_admin_password
+
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azuread_client_config.current.object_id
+  }
 }
 
 # -------------------------------------------------------
