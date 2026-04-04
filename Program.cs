@@ -65,11 +65,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Ensure database schema exists
-using (var scope = app.Services.CreateScope())
+// Ensure database schema exists (don't crash if DB is waking up from auto-pause)
+try
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Failed to ensure database is created on startup. The database may be auto-paused.");
 }
 
 app.Run();
